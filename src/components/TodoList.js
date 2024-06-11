@@ -1,35 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import TodoItem from './TodoItem';
+import TodoForm from './TodoForm';
+
+export const addTodo = (todos, newTodo) => {
+  if (!newTodo.text.trim()) {
+    return todos;
+  }
+  return [...todos, newTodo];
+};
 
 const TodoList = () => {
-    const [todos, setTodos] = useState([]);
-    const [input, setInput] = useState('');
+  const [todos, setTodos] = useState([]);
 
+  useEffect(() => {
+    const fetchTodos = async () => {
+      const response = await fetch('/api/todos');
+      const data = await response.json();
+      setTodos(data);
+    };
 
-    useEffect(() => {
-        const fetchTodos = async () => {
-            try {
-                const response = await fetch('https://jsonplaceholder.typicode.com/todos');
-                const data = await response.json();
-                const formattedTodos = data.map(todo => ({ text: todo.title, completed: todo.completed }));
-                setTodos(formattedTodos);
-            } catch (error) {
-                console.error('Error fetching todos:', error);
-            }
-        };
+    fetchTodos();
+  }, []);
 
-        fetchTodos();
-    }, []);
+  const handleAddTodo = (text) => {
+    const newTodo = { text, id: Date.now() };
+    setTodos((prevTodos) => addTodo(prevTodos, newTodo));
+  };
 
-    return (
-        <div>
-            <ul>
-                {todos.map((todo, index) => (
-                    <TodoItem key={index} todo={todo} />
-                ))}
-            </ul>
-        </div>
-    );
+  return (
+    <div>
+      <TodoForm addTodo={handleAddTodo} />
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo.id}>{todo.text}</li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default TodoList;
